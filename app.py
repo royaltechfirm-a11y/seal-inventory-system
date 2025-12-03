@@ -1,14 +1,4 @@
-﻿import os
-
-
-# Database configuration for Render
-DATABASE_URL = os.environ.get('DATABASE_URL')
-if DATABASE_URL:
-    app.config['SQLALCHEMY_DATABASE_URI'] = DATABASE_URL.replace("postgres://", "postgresql://", 1)
-else:
-    app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///inventory.db'
-# app.py - COMPLETE Inventory Management System
-from flask import Flask, render_template, request, jsonify, redirect, url_for
+﻿from flask import Flask, render_template, request, jsonify, redirect, url_for
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
