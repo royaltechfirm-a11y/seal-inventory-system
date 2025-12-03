@@ -1,0 +1,7 @@
+echo Flask==2.3.3 > requirements.txt
+echo Flask-SQLAlchemy==3.0.5 >> requirements.txt
+echo Flask-Login==0.6.2 >> requirements.txt
+echo python-dotenv==1.0.0 >> requirements.txt
+echo Werkzeug==2.3.7 >> requirements.txt
+echo gunicorn==20.1.0 >> requirements.txt
+echo psycopg2-binary==2.9.7 >> requirements.txt
