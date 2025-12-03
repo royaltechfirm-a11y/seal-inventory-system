@@ -1,6 +1,5 @@
 import os
-import psycopg2
-from psycopg2.extras import RealDictCursor
+
 
 # Database configuration for Render
 DATABASE_URL = os.environ.get('DATABASE_URL')
