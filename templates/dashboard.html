@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Dashboard - Inventory System</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f5f5f5;
+        }
+        .navbar {
+            background: #1a202c;
+            color: white;
+            padding: 15px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .sidebar {
+            width: 250px;
+            background: #2d3748;
+            color: white;
+            height: calc(100vh - 60px);
+            position: fixed;
+        }
+        .sidebar a {
+            display: block;
+            color: #cbd5e0;
+            padding: 15px 20px;
+            text-decoration: none;
+            border-left: 4px solid transparent;
+        }
+        .sidebar a:hover, .sidebar a.active {
+            background: #4a5568;
+            border-left-color: #4299e1;
+        }
+        .main-content {
+            margin-left: 250px;
+            padding: 30px;
+        }
+        .cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+        }
+        .card {
+            background: white;
+            padding: 25px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .card h3 {
+            color: #4a5568;
+            margin-bottom: 10px;
+        }
+        .card .value {
+            font-size: 36px;
+            font-weight: bold;
+            color: #2d3748;
+        }
+        .btn {
+            background: #4299e1;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        .btn:hover {
+            background: #3182ce;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        th, td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        th {
+            background: #f7fafc;
+            font-weight: 600;
+            color: #4a5568;
+        }
+        .form-popup {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            z-index: 1000;
+            width: 500px;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <div class="navbar">
+        <div style="font-size: 20px;">🏭 {{ current_user.company_name }}</div>
+        <div>
+            <span>{{ current_user.email }}</span>
+            <a href="/logout" style="color: white; margin-left: 20px;">Logout</a>
+        </div>
+    </div>
+    
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <a href="/dashboard" class="active">📊 Dashboard</a>
+        <a href="#" onclick="showAddMaterial()">📦 Add Raw Material</a>
+        <a href="#" onclick="showAddPart()">⚙️ Add Part</a>
+        <a href="#" onclick="showProduction()">🏭 Production Run</a>
+        <a href="#" onclick="showAssembly()">🔧 Assembly</a>
+        <a href="#">📦 Finished Products</a>
+        <a href="#">📈 Reports</a>
+    </div>
+    
+    <!-- Main Content -->
+    <div class="main-content">
+        <h1>Welcome to Your Inventory Dashboard</h1>
+        <p>Manage your seal manufacturing efficiently</p>
+        
+        <!-- Quick Stats -->
+        <div class="cards">
+            <div class="card">
+                <h3>Raw Materials</h3>
+                <div class="value" id="materials-count">{{ materials_count }}</div>
+                <p>Items in stock</p>
+            </div>
+            <div class="card">
+                <h3>Parts Inventory</h3>
+                <div class="value" id="parts-count">{{ parts_count }}</div>
+                <p>Components ready</p>
+            </div>
+            <div class="card">
+                <h3>Finished Seals</h3>
+                <div class="value" id="products-count">{{ products_count }}</div>
+                <p>Ready to ship</p>
+            </div>
+        </div>
+        
+        <!-- Quick Actions -->
+        <div class="card">
+            <h3>Quick Actions</h3>
+            <button class="btn" onclick="showAddMaterial()">➕ Add Raw Material</button>
+            <button class="btn" onclick="showProduction()">🏭 Start Production</button>
+            <button class="btn" onclick="loadMaterials()">📋 View Materials</button>
+        </div>
+        
+        <!-- Content Area -->
+        <div id="content-area"></div>
+    </div>
+    
+    <!-- Add Material Form (Hidden) -->
+    <div id="add-material-form" class="form-popup">
+        <h3>Add Raw Material</h3>
+        <input type="text" id="mat-name" placeholder="Name (e.g., Rubber NBR)">
+        <input type="text" id="mat-grade" placeholder="Grade">
+        <input type="number" id="mat-stock" placeholder="Stock">
+        <input type="text" id="mat-unit" placeholder="Unit (kg, pieces)">
+        <input type="number" id="mat-cost" placeholder="Cost per unit">
+        <div style="margin-top: 20px;">
+            <button class="btn" onclick="saveMaterial()">Save</button>
+            <button class="btn" onclick="closeForm('add-material-form')">Cancel</button>
+        </div>
+    </div>
+    
+    <!-- Production Form (Hidden) -->
+    <div id="production-form" class="form-popup">
+        <h3>Production Run</h3>
+        <p>Material Used: <input type="number" id="input-cost" placeholder="Cost"> ₹</p>
+        
+        <h4>Outputs Produced:</h4>
+        <div id="outputs-container">
+            <div>
+                <input type="text" placeholder="Part Name">
+                <input type="number" placeholder="Quantity" style="width: 80px;">
+                <input type="number" placeholder="Weight each" style="width: 100px;">
+            </div>
+        </div>
+        
+        <button class="btn" onclick="addOutput()">+ Add Output</button>
+        <button class="btn" onclick="calculateProduction()">Calculate Cost</button>
+        <button class="btn" onclick="closeForm('production-form')">Cancel</button>
+        
+        <div id="production-results" style="margin-top: 20px; display: none;"></div>
+    </div>
+
+    <script>
+        // Load materials from API
+        async function loadMaterials() {
+            const response = await fetch('/api/materials');
+            const materials = await response.json();
+            
+            let html = '<h3>Raw Materials</h3><table><tr><th>Name</th><th>Stock</th><th>Unit</th><th>Cost</th></tr>';
+            
+            materials.forEach(material => {
+                html += `<tr>
+                    <td>${material.name}</td>
+                    <td>${material.current_stock}</td>
+                    <td>${material.unit}</td>
+                    <td>₹${material.avg_cost}</td>
+                </tr>`;
+            });
+            
+            html += '</table>';
+            document.getElementById('content-area').innerHTML = html;
+        }
+        
+        // Show/Hide forms
+        function showAddMaterial() {
+            document.getElementById('add-material-form').style.display = 'block';
+        }
+        
+        function showProduction() {
+            document.getElementById('production-form').style.display = 'block';
+        }
+        
+        function closeForm(formId) {
+            document.getElementById(formId).style.display = 'none';
+        }
+        
+        // Save material
+        async function saveMaterial() {
+            const material = {
+                name: document.getElementById('mat-name').value,
+                grade: document.getElementById('mat-grade').value,
+                current_stock: parseFloat(document.getElementById('mat-stock').value),
+                unit: document.getElementById('mat-unit').value,
+                avg_cost: parseFloat(document.getElementById('mat-cost').value)
+            };
+            
+            const response = await fetch('/api/materials', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify(material)
+            });
+            
+            const result = await response.json();
+            if(result.success) {
+                alert('Material saved successfully!');
+                closeForm('add-material-form');
+                loadMaterials();
+            }
+        }
+        
+        // Production calculation
+        async function calculateProduction() {
+            const inputCost = parseFloat(document.getElementById('input-cost').value);
+            
+            // Get outputs (simplified)
+            const outputs = [
+                {part_name: "Bellow", quantity: 50, weight: 0.8},
+                {part_name: "Buch", quantity: 40, weight: 0.6}
+            ];
+            
+            const data = {
+                input_cost: inputCost,
+                outputs: outputs
+            };
+            
+            const response = await fetch('/api/production/run', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify(data)
+            });
+            
+            const result = await response.json();
+            
+            if(result.success) {
+                let html = '<h4>Cost Allocation Results:</h4>';
+                result.outputs.forEach(output => {
+                    html += `<p>${output.part_name}: ${output.quantity} units = ₹${output.cost_per_unit} each</p>`;
+                });
+                document.getElementById('production-results').innerHTML = html;
+                document.getElementById('production-results').style.display = 'block';
+            }
+        }
+    </script>
+</body>
+</html>
