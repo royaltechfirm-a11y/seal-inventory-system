@@ -1,3 +1,13 @@
+import os
+import psycopg2
+from psycopg2.extras import RealDictCursor
+
+# Database configuration for Render
+DATABASE_URL = os.environ.get('DATABASE_URL')
+if DATABASE_URL:
+    app.config['SQLALCHEMY_DATABASE_URI'] = DATABASE_URL.replace("postgres://", "postgresql://", 1)
+else:
+    app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///inventory.db'
 # app.py - COMPLETE Inventory Management System
 from flask import Flask, render_template, request, jsonify, redirect, url_for
 from flask_sqlalchemy import SQLAlchemy
@@ -8,7 +18,14 @@ import os
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'seal-inventory-secret-2024')
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///inventory.db'
+
+# Database configuration for Render
+DATABASE_URL = os.environ.get('DATABASE_URL')
+if DATABASE_URL:
+    app.config['SQLALCHEMY_DATABASE_URI'] = DATABASE_URL.replace("postgres://", "postgresql://", 1)
+else:
+    app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///inventory.db'
+    
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db = SQLAlchemy(app)
@@ -73,6 +90,15 @@ def home():
     if current_user.is_authenticated:
         return redirect(url_for('dashboard'))
     return render_template('login.html')
+
+@app.route('/api/health')
+def health_check():
+    from datetime import datetime
+    return jsonify({
+        'status': 'healthy',
+        'service': 'Seal Inventory System',
+        'timestamp': datetime.utcnow().isoformat()
+    })
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -327,5 +353,6 @@ def init_db():
 
 if __name__ == '__main__':
     init_db()
-    print("🚀 Starting Inventory System at: http://localhost:5000")
-    app.run(debug=True, port=5000)
+    port = int(os.environ.get("PORT", 5000))
+    print(f"🚀 Starting Inventory System at: http://localhost:{port}")
+    app.run(host='0.0.0.0', port=port, debug=False)
