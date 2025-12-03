@@ -1,4 +1,4 @@
-import os
+﻿import os
 
 
 # Database configuration for Render
@@ -344,14 +344,14 @@ def init_db():
                 db.session.add(product)
             
             db.session.commit()
-            print("✅ Database created with YOUR actual manufacturing data!")
+            print("âœ… Database created with YOUR actual manufacturing data!")
             print(f"   Raw Materials: {len(raw_materials)} items")
             print(f"   Parts: {len(parts)} items")
             print(f"   Seal Products: {len(products)} types")
-            print("\n👤 Login: admin@example.com / admin123")
+            print("\nðŸ‘¤ Login: admin@example.com / admin123")
 
 if __name__ == '__main__':
     init_db()
     port = int(os.environ.get("PORT", 5000))
-    print(f"🚀 Starting Inventory System at: http://localhost:{port}")
+    print(f"ðŸš€ Starting Inventory System at: http://localhost:{port}")
     app.run(host='0.0.0.0', port=port, debug=False)
